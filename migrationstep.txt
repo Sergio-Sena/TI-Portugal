@@ -1,0 +1,61 @@
+{
+  "name": "MigrationStep",
+  "type": "object",
+  "properties": {
+    "step_number": {
+      "type": "number",
+      "description": "Order of the step"
+    },
+    "title": {
+      "type": "string",
+      "description": "Step title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the step"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "preparation",
+        "documentation",
+        "job_search",
+        "relocation",
+        "integration"
+      ],
+      "description": "Category of the migration step"
+    },
+    "timeline": {
+      "type": "string",
+      "description": "Expected timeline for completion"
+    },
+    "required_documents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "cost_estimate": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "default": "EUR"
+        }
+      }
+    },
+    "tips": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "resources": {
+      "type": "array",
+ 

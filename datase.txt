@@ -1,0 +1,61 @@
+{
+  "name": "Research",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Research finding title"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "age_discrimination",
+        "market_trends",
+        "salary_data",
+        "company_policies",
+        "legal_framework"
+      ],
+      "description": "Category of research finding"
+    },
+    "source": {
+      "type": "string",
+      "description": "Source of the information"
+    },
+    "year": {
+      "type": "number",
+      "description": "Year of the data"
+    },
+    "key_findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Key findings from the research"
+    },
+    "statistics": {
+      "type": "object",
+      "properties": {
+        "percentage": {
+          "type": "number"
+        },
+        "sample_size": {
+          "type": "number"
+        },
+        "metric": {
+          "type": "string"
+        }
+      }
+    },
+    "relevance_score": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Relevance score from 1-5"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "source"
+  ]
+}

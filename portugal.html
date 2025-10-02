@@ -1,0 +1,517 @@
+
+import React, { useState, useEffect } from "react";
+import { InvokeLLM } from "@/integrations/Core";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MapPin, Home, Heart, Briefcase, GraduationCap, Shield, Plane, Coffee } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function PortugalPage() {
+  const [portugalInfo, setPortugalInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadPortugalInfo();
+  }, []);
+
+  const loadPortugalInfo = async () => {
+    try {
+      const response = await InvokeLLM({
+        prompt: `Forneça informações abrangentes sobre Portugal para profissionais de TI considerando migração, focando especificamente em:
+
+        VIVENDO EM PORTUGAL:
+        - Comparação de custo de vida com grandes cidades da UE
+        - Melhores cidades para profissionais tech (Lisboa, Porto, Braga, etc.)
+        - Mercado imobiliário e custos de aluguel
+        - Qualidade e acesso ao sistema de saúde
+        - Sistema educacional para famílias com crianças
+        - Benefícios climáticos e de estilo de vida
+
+        TRABALHANDO EM PORTUGAL:
+        - Localizações de hubs tech e grandes empresas
+        - Ecossistema de startups e oportunidades
+        - Cultura de trabalho e equilíbrio vida-trabalho
+        - Requisitos de idioma português em tech
+        - Networking e comunidades profissionais
+        - Oportunidades de crescimento de carreira
+
+        INFORMAÇÕES PRÁTICAS:
+        - Sistema tributário e benefícios para trabalhadores tech
+        - Serviços bancários e financeiros
+        - Transporte e infraestrutura
+        - Conectividade de internet e infraestrutura digital
+        - Burocracia e processos administrativos
+        - Desafios de integração e soluções
+
+        QUALIDADE DE VIDA:
+        - Avaliações de segurança
+        - Atrações culturais e entretenimento
+        - Cena gastronômica e cultura de jantar
+        - Esportes e atividades ao ar livre
+        - Comunidades de expatriados e vida social
+        - Oportunidades de viagem dentro da Europa
+
+        Inclua dados específicos, estatísticas e dicas práticas para alguém fazendo a transição.`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            living_costs: {
+              type: "object",
+              properties: {
+                rent_1br_lisbon: { type: "number" },
+                rent_1br_porto: { type: "number" },
+                utilities_monthly: { type: "number" },
+                groceries_monthly: { type: "number" },
+                dining_out_avg: { type: "number" },
+                public_transport_monthly: { type: "number" }
+              }
+            },
+            tech_ecosystem: {
+              type: "object",
+              properties: {
+                major_companies: { type: "array", items: { type: "string" } },
+                startup_hubs: { type: "array", items: { type: "string" } },
+                average_salaries: {
+                  type: "object",
+                  properties: {
+                    junior_dev: { type: "number" },
+                    senior_dev: { type: "number" },
+                    cloud_architect: { type: "number" }
+                  }
+                },
+                remote_work_culture: { type: "string" }
+              }
+            },
+            quality_of_life: {
+              type: "object",
+              properties: {
+                safety_index: { type: "number" },
+                healthcare_ranking: { type: "number" },
+                education_ranking: { type: "number" },
+                work_life_balance: { type: "string" },
+                climate_description: { type: "string" }
+              }
+            },
+            practical_info: {
+              type: "object",
+              properties: {
+                tax_rates: {
+                  type: "object",
+                  properties: {
+                    income_tax_max: { type: "number" },
+                    social_security: { type: "number" }
+                  }
+                },
+                language_requirements: { type: "string" },
+                bureaucracy_rating: { type: "string" },
+                internet_speed_avg: { type: "number" }
+              }
+            },
+            best_cities: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  population: { type: "number" },
+                  tech_scene: { type: "string" },
+                  cost_of_living: { type: "string" },
+                  highlights: { type: "array", items: { type: "string" } }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      setPortugalInfo(response);
+    } catch (error) {
+      console.error("Erro ao carregar informações de Portugal:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <Skeleton className="h-10 w-96 mb-4" />
+            <Skeleton className="h-6 w-full max-w-2xl" />
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[1,2,3].map(i => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-20 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-8 bg-gradient-to-r from-green-500 to-red-500 rounded"></div>
+            <Badge className="bg-green-100 text-green-700">Estado Membro da UE</Badge>
+            <Badge variant="outline">Tech-Friendly</Badge>
+          </div>
+          <h1 className="text-4xl font-bold text-slate-900 mb-4">
+            Viver e Trabalhar em Portugal
+          </h1>
+          <p className="text-lg text-slate-600 max-w-3xl">
+            Guia abrangente sobre o estilo de vida, ecossistema tech e informações práticas 
+            de Portugal para profissionais de TI considerando a mudança.
+          </p>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-blue-900">Índice de Segurança</CardTitle>
+                <Shield className="w-5 h-5 text-blue-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-700 mb-2">
+                {portugalInfo?.quality_of_life?.safety_index || 73}/100
+              </div>
+              <p className="text-blue-600 text-sm">4º país mais seguro da UE</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-emerald-50 to-emerald-100">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-emerald-900">Saúde</CardTitle>
+                <Heart className="w-5 h-5 text-emerald-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-emerald-700 mb-2">
+                #{portugalInfo?.quality_of_life?.healthcare_ranking || 12}
+              </div>
+              <p className="text-emerald-600 text-sm">ranking mundial de saúde</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-purple-900">Custo de Vida</CardTitle>
+                <Home className="w-5 h-5 text-purple-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-700 mb-2">-30%</div>
+              <p className="text-purple-600 text-sm">vs média Europa Ocidental</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-orange-900">Velocidade Internet</CardTitle>
+                <Plane className="w-5 h-5 text-orange-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-orange-700 mb-2">
+                {portugalInfo?.practical_info?.internet_speed_avg || 108} Mbps
+              </div>
+              <p className="text-orange-600 text-sm">velocidade média download</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Detailed Information */}
+        <Tabs defaultValue="living" className="space-y-6">
+          <TabsList className="bg-white border border-slate-200 p-1">
+            <TabsTrigger value="living" className="px-6">Custos de Vida</TabsTrigger>
+            <TabsTrigger value="tech" className="px-6">Ecossistema Tech</TabsTrigger>
+            <TabsTrigger value="cities" className="px-6">Melhores Cidades</TabsTrigger>
+            <TabsTrigger value="practical" className="px-6">Info Prática</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="living" className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Home className="w-5 h-5" />
+                    Custos Mensais de Vida
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <span className="font-medium">Apartamento 1 Quarto (Lisboa)</span>
+                      <span className="font-bold">€{portugalInfo?.living_costs?.rent_1br_lisbon || 1200}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <span className="font-medium">Apartamento 1 Quarto (Porto)</span>
+                      <span className="font-bold">€{portugalInfo?.living_costs?.rent_1br_porto || 800}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <span className="font-medium">Utilidades</span>
+                      <span className="font-bold">€{portugalInfo?.living_costs?.utilities_monthly || 120}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <span className="font-medium">Mercado</span>
+                      <span className="font-bold">€{portugalInfo?.living_costs?.groceries_monthly || 300}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <span className="font-medium">Transporte Público</span>
+                      <span className="font-bold">€{portugalInfo?.living_costs?.public_transport_monthly || 40}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Coffee className="w-5 h-5" />
+                    Qualidade de Vida
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-2">Clima</h4>
+                      <p className="text-slate-600 text-sm">
+                        {portugalInfo?.quality_of_life?.climate_description || 
+                         "Clima mediterrâneo com invernos suaves e verões quentes. 300+ dias ensolarados por ano."}
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-2">Equilíbrio Vida-Trabalho</h4>
+                      <p className="text-slate-600 text-sm">
+                        {portugalInfo?.quality_of_life?.work_life_balance || 
+                         "Forte ênfase no equilíbrio vida-trabalho. Semana padrão de 40 horas com arranjos flexíveis comuns em tech."}
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-2">Estilo de Vida</h4>
+                      <ul className="text-slate-600 text-sm space-y-1">
+                        <li>• Excelentes praias e cidades costeiras</li>
+                        <li>• Rica herança cultural e festivais</li>
+                        <li>• Cena gastronômica e vinícola destacada</li>
+                        <li>• Viagens fáceis dentro da Europa</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="tech" className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="w-5 h-5" />
+                    Principais Empresas Tech
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {portugalInfo?.tech_ecosystem?.major_companies?.map((company, index) => (
+                      <Badge key={index} variant="outline" className="mr-2 mb-2">
+                        {company}
+                      </Badge>
+                    ))}
+                  </div>
+                  <p className="text-slate-600 text-sm mt-4">
+                    Portugal hospeda escritórios de grandes empresas tech internacionais junto com um próspero ecossistema de startups.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5" />
+                    Faixas Salariais (Anual)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
+                      <span className="font-medium">Desenvolvedor Júnior</span>
+                      <span className="font-bold text-blue-700">
+                        €{portugalInfo?.tech_ecosystem?.average_salaries?.junior_dev?.toLocaleString() || '25.000'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-lg">
+                      <span className="font-medium">Desenvolvedor Sênior</span>
+                      <span className="font-bold text-emerald-700">
+                        €{portugalInfo?.tech_ecosystem?.average_salaries?.senior_dev?.toLocaleString() || '45.000'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
+                      <span className="font-medium">Arquiteto de Nuvem</span>
+                      <span className="font-bold text-purple-700">
+                        €{portugalInfo?.tech_ecosystem?.average_salaries?.cloud_architect?.toLocaleString() || '65.000'}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle>Ecossistema de Startups</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-4">
+                  {portugalInfo?.tech_ecosystem?.startup_hubs?.map((hub, index) => (
+                    <div key={index} className="p-4 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg">
+                      <h4 className="font-semibold text-slate-900 mb-2">{hub}</h4>
+                      <p className="text-sm text-slate-600">Hub tech crescente com atividade de startup em aumento</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-semibold text-blue-900 mb-2">Cultura de Trabalho Remoto</h4>
+                  <p className="text-blue-700">
+                    {portugalInfo?.tech_ecosystem?.remote_work_culture || 
+                     "Portugal abraçou o trabalho remoto, com muitas empresas oferecendo arranjos flexíveis. O país é popular entre nômades digitais e trabalhadores remotos."}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="cities" className="space-y-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {portugalInfo?.best_cities?.map((city, index) => (
+                <Card key={index} className="border-0 shadow-lg">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-5 h-5 text-blue-600" />
+                      <div>
+                        <CardTitle>{city.name}</CardTitle>
+                        <p className="text-sm text-slate-500">
+                          {city.population?.toLocaleString()} habitantes
+                        </p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-semibold text-slate-900 text-sm">Cena Tech</h4>
+                        <p className="text-slate-600 text-sm">{city.tech_scene}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-slate-900 text-sm">Custo de Vida</h4>
+                        <Badge className="text-xs" variant="outline">{city.cost_of_living}</Badge>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-slate-900 text-sm">Destaques</h4>
+                        <ul className="text-slate-600 text-sm space-y-1">
+                          {city.highlights?.slice(0, 3).map((highlight, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <div className="w-1 h-1 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                              {highlight}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="practical" className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle>Informações Fiscais</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <span className="font-medium">Imposto Renda Máx</span>
+                      <span className="font-bold">
+                        {portugalInfo?.practical_info?.tax_rates?.income_tax_max || 48}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                      <span className="font-medium">Segurança Social</span>
+                      <span className="font-bold">
+                        {portugalInfo?.practical_info?.tax_rates?.social_security || 11}%
+                      </span>
+                    </div>
+                    <div className="p-3 bg-green-50 rounded-lg">
+                      <h4 className="font-semibold text-green-900 mb-2">Programa RNH</h4>
+                      <p className="text-green-700 text-sm">
+                        Programa Residente Não Habitual oferece taxa fixa de 20% para profissões elegíveis incluindo TI.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle>Idioma e Integração</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-2">Requisitos de Idioma</h4>
+                      <p className="text-slate-600 text-sm">
+                        {portugalInfo?.practical_info?.language_requirements || 
+                         "Inglês é amplamente usado em empresas tech. Português ajuda na vida diária e algumas posições."}
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-2">Burocracia</h4>
+                      <Badge variant="outline" className="mb-2">
+                        {portugalInfo?.practical_info?.bureaucracy_rating || "Moderada"}
+                      </Badge>
+                      <p className="text-slate-600 text-sm">
+                        Transformação digital melhorou muitos serviços governamentais. 
+                        Alguns processos ainda requerem visitas presenciais.
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 mb-2">Dicas de Integração</h4>
+                      <ul className="text-slate-600 text-sm space-y-1">
+                        <li>• Junte-se a comunidades expat e meetups tech</li>
+                        <li>• Aprenda frases básicas em português</li>
+                        <li>• Entenda a cultura empresarial local</li>
+                        <li>• Familiarize-se com processos burocráticos</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}

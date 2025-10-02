@@ -1,0 +1,389 @@
+
+import React, { useState, useEffect } from "react";
+import { MigrationStep } from "@/entities/MigrationStep";
+import { InvokeLLM } from "@/integrations/Core";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CheckCircle, Clock, FileText, MapPin, Briefcase, Users, Euro, ExternalLink, ArrowRight } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function MigrationPage() {
+  const [migrationSteps, setMigrationSteps] = useState([]);
+  const [completedSteps, setCompletedSteps] = useState(new Set());
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState("all");
+
+  useEffect(() => {
+    loadMigrationGuide();
+  }, []);
+
+  const loadMigrationGuide = async () => {
+    try {
+      const response = await InvokeLLM({
+        prompt: `Crie um guia de migração abrangente passo a passo para profissionais de TI (especialmente aqueles 40+) se mudando para Portugal para cargos de engenharia de nuvem ou desenvolvimento de software. Inclua:
+
+        FASE DE PREPARAÇÃO:
+        - Avaliação de habilidades e preparação de portfólio
+        - Recomendações de aprendizado de português
+        - Planejamento financeiro e metas de poupança
+        - Pesquisa sobre o mercado tech português
+
+        FASE DE DOCUMENTAÇÃO:
+        - Requisitos de visto e processo de aplicação
+        - Reconhecimento de credenciais profissionais
+        - Configuração do número fiscal (NIF) e segurança social
+        - Requisitos bancários
+
+        FASE DE BUSCA DE EMPREGO:
+        - Portais de trabalho e estratégias de networking
+        - Adaptação de CV para o mercado português
+        - Preparação para entrevistas e dicas culturais
+        - Estratégias de negociação salarial
+
+        FASE DE RELOCAÇÃO:
+        - Busca de moradia e processo de aluguel
+        - Registro no sistema de saúde
+        - Educação das crianças (se aplicável)
+        - Configuração de utilidades e logística
+
+        FASE DE INTEGRAÇÃO:
+        - Dicas de adaptação cultural
+        - Networking profissional
+        - Construção de comunidade
+        - Desenvolvimento de carreira a longo prazo
+
+        Para cada passo, forneça cronogramas realistas, estimativas de custo em EUR, documentos necessários, dicas práticas e recursos/sites relevantes.`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            migration_steps: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  step_number: { type: "number" },
+                  title: { type: "string" },
+                  description: { type: "string" },
+                  category: { 
+                    type: "string",
+                    enum: ["preparation", "documentation", "job_search", "relocation", "integration"]
+                  },
+                  timeline: { type: "string" },
+                  required_documents: {
+                    type: "array",
+                    items: { type: "string" }
+                  },
+                  cost_estimate: {
+                    type: "object",
+                    properties: {
+                      min: { type: "number" },
+                      max: { type: "number" },
+                      currency: { type: "string" }
+                    }
+                  },
+                  tips: {
+                    type: "array",
+                    items: { type: "string" }
+                  },
+                  resources: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: { type: "string" },
+                        url: { type: "string" },
+                        type: { 
+                          type: "string",
+                          enum: ["website", "document", "contact", "service"]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            total_timeline: { type: "string" },
+            total_cost_estimate: {
+              type: "object",
+              properties: {
+                min: { type: "number" },
+                max: { type: "number" },
+                currency: { type: "string" }
+              }
+            },
+            success_factors: {
+              type: "array",
+              items: { type: "string" }
+            }
+          }
+        }
+      });
+
+      // Store the migration steps
+      if (response.migration_steps) {
+        for (const step of response.migration_steps) {
+          await MigrationStep.create(step);
+        }
+      }
+
+      // Load stored steps
+      const steps = await MigrationStep.list("step_number");
+      setMigrationSteps(steps);
+    } catch (error) {
+      console.error("Erro ao carregar guia de migração:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleStepCompletion = (stepId) => {
+    setCompletedSteps(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(stepId)) {
+        newSet.delete(stepId);
+      } else {
+        newSet.add(stepId);
+      }
+      return newSet;
+    });
+  };
+
+  const filteredSteps = activeCategory === "all" 
+    ? migrationSteps 
+    : migrationSteps.filter(step => step.category === activeCategory);
+
+  const completionPercentage = migrationSteps.length > 0 
+    ? (completedSteps.size / migrationSteps.length) * 100 
+    : 0;
+
+  const categoryIcons = {
+    preparation: FileText,
+    documentation: FileText,
+    job_search: Briefcase,
+    relocation: MapPin,
+    integration: Users
+  };
+
+  const categoryColors = {
+    preparation: "bg-blue-100 text-blue-800 border-blue-200",
+    documentation: "bg-purple-100 text-purple-800 border-purple-200",
+    job_search: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    relocation: "bg-orange-100 text-orange-800 border-orange-200",
+    integration: "bg-pink-100 text-pink-800 border-pink-200"
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <Skeleton className="h-10 w-96 mb-4" />
+            <Skeleton className="h-6 w-full max-w-2xl" />
+          </div>
+          <div className="space-y-4">
+            {[1,2,3,4,5].map(i => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-48" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-slate-900 mb-4">
+            Guia de Migração para TI Portugal
+          </h1>
+          <p className="text-lg text-slate-600 max-w-3xl mb-6">
+            Guia completo passo a passo para profissionais de TI experientes 
+            se mudando para o próspero ecossistema tecnológico de Portugal.
+          </p>
+
+          {/* Progress Tracking */}
+          <Card className="border-0 shadow-lg mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Seu Progresso</h3>
+                <span className="text-sm text-slate-600">
+                  {completedSteps.size} de {migrationSteps.length} passos concluídos
+                </span>
+              </div>
+              <Progress value={completionPercentage} className="h-3 mb-2" />
+              <p className="text-sm text-slate-600">
+                {Math.round(completionPercentage)}% completo
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Category Filter */}
+        <Tabs value={activeCategory} onValueChange={setActiveCategory} className="mb-8">
+          <TabsList className="bg-white border border-slate-200 p-1">
+            <TabsTrigger value="all">Todos os Passos</TabsTrigger>
+            <TabsTrigger value="preparation">Preparação</TabsTrigger>
+            <TabsTrigger value="documentation">Documentação</TabsTrigger>
+            <TabsTrigger value="job_search">Busca de Emprego</TabsTrigger>
+            <TabsTrigger value="relocation">Relocação</TabsTrigger>
+            <TabsTrigger value="integration">Integração</TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        {/* Migration Steps */}
+        <div className="space-y-6">
+          {filteredSteps.map((step, index) => {
+            const Icon = categoryIcons[step.category];
+            const isCompleted = completedSteps.has(step.id);
+            
+            return (
+              <Card key={step.id} className={`border-0 shadow-lg transition-all duration-200 ${isCompleted ? 'bg-green-50 border-green-200' : 'bg-white'}`}>
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-500' : 'bg-slate-200'}`}>
+                        {isCompleted ? (
+                          <CheckCircle className="w-4 h-4 text-white" />
+                        ) : (
+                          <span className="text-slate-600 font-semibold text-sm">{step.step_number}</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <CardTitle className={`text-xl ${isCompleted ? 'line-through text-slate-500' : 'text-slate-900'}`}>
+                            {step.title}
+                          </CardTitle>
+                          <Badge className={categoryColors[step.category]}>
+                            <Icon className="w-3 h-3 mr-1" />
+                            {step.category.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                        <p className="text-slate-600 mb-3">{step.description}</p>
+                        <div className="flex items-center gap-4 text-sm text-slate-500">
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {step.timeline}
+                          </div>
+                          {step.cost_estimate && (
+                            <div className="flex items-center gap-1">
+                              <Euro className="w-4 h-4" />
+                              €{step.cost_estimate.min}-{step.cost_estimate.max}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <Button
+                      variant={isCompleted ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => toggleStepCompletion(step.id)}
+                    >
+                      {isCompleted ? "Concluído" : "Marcar como Concluído"}
+                    </Button>
+                  </div>
+                </CardHeader>
+
+                <CardContent className="pt-0">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {/* Required Documents */}
+                    {step.required_documents && step.required_documents.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                          <FileText className="w-4 h-4" />
+                          Documentos Necessários
+                        </h4>
+                        <ul className="space-y-1">
+                          {step.required_documents.map((doc, idx) => (
+                            <li key={idx} className="text-sm text-slate-600 flex items-start gap-2">
+                              <div className="w-1 h-1 bg-slate-400 rounded-full mt-2 flex-shrink-0" />
+                              {doc}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Tips */}
+                    {step.tips && step.tips.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4" />
+                          Dicas Profissionais
+                        </h4>
+                        <ul className="space-y-1">
+                          {step.tips.slice(0, 3).map((tip, idx) => (
+                            <li key={idx} className="text-sm text-slate-600 flex items-start gap-2">
+                              <div className="w-1 h-1 bg-emerald-500 rounded-full mt-2 flex-shrink-0" />
+                              {tip}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Resources */}
+                    {step.resources && step.resources.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                          <ExternalLink className="w-4 h-4" />
+                          Recursos
+                        </h4>
+                        <div className="space-y-2">
+                          {step.resources.slice(0, 3).map((resource, idx) => (
+                            <a
+                              key={idx}
+                              href={resource.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                            >
+                              <ArrowRight className="w-3 h-3" />
+                              {resource.name}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Summary Card */}
+        <Card className="border-0 shadow-lg mt-8 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-2xl font-bold mb-4">Pronto para Começar sua Jornada?</h2>
+            <p className="text-lg opacity-90 mb-6 max-w-2xl mx-auto">
+              O processo médio de migração leva 6-12 meses. Comece com a fase de preparação 
+              e trabalhe sistematicamente através de cada passo para obter os melhores resultados.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" variant="outline" className="bg-white text-blue-600 hover:bg-slate-50">
+                Baixar Checklist
+              </Button>
+              <Button size="lg" variant="ghost" className="text-white hover:bg-white/10">
+                Juntar-se à Comunidade
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
